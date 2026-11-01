@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wayfarer: Translate, Convert, Calculate</title>
+  <meta name="description" content="Translate text, convert currencies and do quick calculations in one place.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧭</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="masthead">
+      <h1 class="wordmark">Wayfarer</h1>
+      <p class="tagline">Translate text, convert money and do quick sums, all in one place.</p>
+    </header>
+
+    <nav class="tabs" role="tablist" aria-label="Tools">
+      <button class="tab" role="tab" id="tab-translate" data-tab="translate" aria-controls="panel-translate" aria-selected="true">
+        <span class="tab-glyph" aria-hidden="true">文A</span><span>Translate</span>
+      </button>
+      <button class="tab" role="tab" id="tab-currency" data-tab="currency" aria-controls="panel-currency" aria-selected="false" tabindex="-1">
+        <span class="tab-glyph is-symbol" aria-hidden="true">¤</span><span>Currency</span>
+      </button>
+      <button class="tab" role="tab" id="tab-calculator" data-tab="calculator" aria-controls="panel-calculator" aria-selected="false" tabindex="-1">
+        <span class="tab-glyph is-symbol" aria-hidden="true">±</span><span>Calculator</span>
+      </button>
+    </nav>
+
+    <main>
+      <!-- ================= TRANSLATE ================= -->
+      <section class="panel" id="panel-translate" role="tabpanel" aria-labelledby="tab-translate">
+        <div class="lang-bar">
+          <label class="field">
+            <span class="field-label">From</span>
+            <select id="srcLang"></select>
+          </label>
+          <button class="icon-btn" id="swapLang" type="button" aria-label="Swap languages" title="Swap languages">⇄</button>
+          <label class="field">
+            <span class="field-label">To</span>
+            <select id="tgtLang"></select>
+          </label>
+        </div>
+
+        <div class="text-pair">
+          <div class="text-box">
+            <label for="srcText" class="sr-only">Text to translate</label>
+            <textarea id="srcText" placeholder="Type or paste text to translate" maxlength="5000" spellcheck="true"></textarea>
+            <div class="box-foot">
+              <span class="meta" id="charCount">0 / 5000</span>
+              <div class="box-actions">
+                <button class="ghost" type="button" id="speakSrc">Listen</button>
+                <button class="ghost" type="button" id="clearSrc">Clear</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-box is-output">
+            <div class="output-text" id="tgtText" aria-live="polite" data-empty="Your translation appears here"></div>
+            <div class="box-foot">
+              <span class="meta" id="transStatus"></span>
+              <div class="box-actions">
+                <button class="ghost" type="button" id="speakTgt">Listen</button>
+                <button class="ghost" type="button" id="copyTgt">Copy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <span class="hint">Press Ctrl + Enter to translate</span>
+          <button class="primary" type="button" id="translateBtn">Translate</button>
+        </div>
+
+        <div class="history" id="transHistoryWrap" hidden>
+          <div class="history-head">
+            <h2>Recent translations</h2>
+            <button class="ghost" type="button" id="clearTransHistory">Clear history</button>
+          </div>
+          <ul class="history-list" id="transHistory"></ul>
+        </div>
+      </section>
+
+      <!-- ================= CURRENCY ================= -->
+      <section class="panel" id="panel-currency" role="tabpanel" aria-labelledby="tab-currency" hidden>
+        <label class="field field-amount">
+          <span class="field-label">Amount</span>
+          <input id="amount" type="text" inputmode="decimal" autocomplete="off" value="1">
+        </label>
+
+        <div class="lang-bar">
+          <label class="field">
+            <span class="field-label">From</span>
+            <select id="fromCur"></select>
+          </label>
+          <button class="icon-btn" id="swapCur" type="button" aria-label="Swap currencies" title="Swap currencies">⇄</button>
+          <label class="field">
+            <span class="field-label">To</span>
+            <select id="toCur"></select>
+          </label>
+        </div>
+
+        <div class="result-block" aria-live="polite">
+          <p class="result-from" id="resultFrom"></p>
+          <p class="result-main" id="resultMain"></p>
+          <p class="result-rate" id="rateLine"></p>
+          <p class="result-rate" id="rateLineInverse"></p>
+        </div>
+
+        <div class="rate-status">
+          <span class="meta" id="rateStatus">Loading rates…</span>
+          <button class="ghost" type="button" id="refreshRates">Refresh rates</button>
+        </div>
+
+        <div class="quick">
+          <h2 id="quickTitle">Quick reference</h2>
+          <div class="table-wrap">
+            <table class="quick-table" aria-labelledby="quickTitle">
+              <thead><tr><th scope="col" id="quickFromHead">From</th><th scope="col" id="quickToHead">To</th></tr></thead>
+              <tbody id="quickBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= CALCULATOR ================= -->
+      <section class="panel" id="panel-calculator" role="tabpanel" aria-labelledby="tab-calculator" hidden>
+        <div class="calc">
+          <div class="calc-display">
+            <div class="calc-expr" id="calcExpr" aria-label="Expression"></div>
+            <div class="calc-result" id="calcResult" aria-live="polite">0</div>
+            <button class="calc-back" type="button" data-key="Backspace" aria-label="Delete last character" title="Delete">⌫</button>
+          </div>
+
+          <div class="keypad" id="keypad">
+            <button type="button" class="k k-fn" data-key="Escape">AC</button>
+            <button type="button" class="k k-fn" data-key="(">(</button>
+            <button type="button" class="k k-fn" data-key=")">)</button>
+            <button type="button" class="k k-op" data-key="/" aria-label="Divide">÷</button>
+
+            <button type="button" class="k" data-key="7">7</button>
+            <button type="button" class="k" data-key="8">8</button>
+            <button type="button" class="k" data-key="9">9</button>
+            <button type="button" class="k k-op" data-key="*" aria-label="Multiply">×</button>
+
+            <button type="button" class="k" data-key="4">4</button>
+            <button type="button" class="k" data-key="5">5</button>
+            <button type="button" class="k" data-key="6">6</button>
+            <button type="button" class="k k-op" data-key="-" aria-label="Subtract">−</button>
+
+            <button type="button" class="k" data-key="1">1</button>
+            <button type="button" class="k" data-key="2">2</button>
+            <button type="button" class="k" data-key="3">3</button>
+            <button type="button" class="k k-op" data-key="+" aria-label="Add">+</button>
+
+            <button type="button" class="k k-fn" data-key="%" aria-label="Percent">%</button>
+            <button type="button" class="k" data-key="0">0</button>
+            <button type="button" class="k" data-key=".">.</button>
+            <button type="button" class="k k-eq" data-key="Enter" aria-label="Equals">=</button>
+          </div>
+
+          <div class="calc-actions">
+            <button class="ghost" type="button" id="calcCopy">Copy result</button>
+            <button class="ghost" type="button" id="calcToCurrency">Convert this amount</button>
+          </div>
+        </div>
+
+        <div class="history" id="calcHistoryWrap" hidden>
+          <div class="history-head">
+            <h2>Calculation history</h2>
+            <button class="ghost" type="button" id="clearCalcHistory">Clear history</button>
+          </div>
+          <ul class="history-list" id="calcHistory"></ul>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>Translations by MyMemory. Exchange rates by ExchangeRate-API, with Frankfurter as a backup. Rates are for reference only.</p>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="calc-engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
