@@ -2,6 +2,8 @@
 
 A lightweight web app with three tools in one place. No build step, no install.
 
+**Live demo:** [https://wayfarerr-beryl.vercel.app/](https://wayfarerr-beryl.vercel.app/#translate)
+
 ## How to run
 1. Unzip the folder.
 2. Double-click `index.html` to open it in Chrome, Edge, Firefox or Safari.
